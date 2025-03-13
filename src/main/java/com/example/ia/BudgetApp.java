@@ -30,8 +30,6 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.FileWriter;
 import java.io.FileReader;
-import java.io.ObjectInputStream;
-import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.prefs.Preferences;
@@ -52,95 +50,176 @@ public class BudgetApp extends Application {
     private VBox statementPane;
 
     @Override
+    /**
+     * Main entry point for the application.
+     *
+     * @param primaryStage the primary stage of the application
+     */
     public void start(Stage primaryStage) {
+        // Load the financial data from storage
         loadFinancialData();
 
+        // Create a tab pane for displaying multiple panes
         TabPane tabPane = new TabPane();
         tabPane.setSide(Side.LEFT);
 
+        // Create a tab for income
         Tab incomeTab = new Tab("Income", createIncomePane());
         incomeTab.setClosable(false);
+
+        // Create a tab for expenses
         Tab expenseTab = new Tab("Expenses", createExpensePane());
         expenseTab.setClosable(false);
+
+        // Create a tab for subscriptions
         Tab subscriptionTab = new Tab("Subscriptions", createSubscriptionPane());
         subscriptionTab.setClosable(false);
+
+        // Create a tab for the statement
         Tab statementTab = new Tab("Statement", createStatementPane());
         statementTab.setClosable(false);
 
+        // Add all tabs to the tab pane
         tabPane.getTabs().addAll(incomeTab, expenseTab, subscriptionTab, statementTab);
+
+        // Set the statement tab as the default selected tab
         tabPane.getSelectionModel().select(statementTab);
 
+        // Create a scene for the tab pane
         Scene scene = new Scene(tabPane, 800, 600);
+
+        // Load the CSS styles for the application
         scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
 
+        // Create a root pane for the application
         VBox root = new VBox(tabPane);
+
+        // Set the tab pane to take up all the available vertical space in the root pane
         VBox.setVgrow(tabPane, Priority.ALWAYS);
+
+        // Create a scene for the root pane
         Scene mainScene = new Scene(root, 800, 600);
+
+        // Load the CSS styles for the application
         mainScene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
 
+        // Set the scene for the primary stage
         primaryStage.setScene(mainScene);
+
+        // Set the title of the primary stage
         primaryStage.setTitle("Budget Tracker");
+
+        // Show the primary stage
         primaryStage.show();
     }
 
+
+    /**
+     * Creates a pane for displaying income data.
+     *
+     * @return a {@link VBox} containing the income pane
+     */
     private VBox createIncomePane() {
         VBox incomePane = new VBox(10);
         incomePane.setPadding(new Insets(10));
         incomePane.setAlignment(Pos.TOP_CENTER);
 
+        // Create label for income
         Label incomeLabel = new Label("Income:");
+
+        // Create table for displaying income data
         TableView<Income> incomeTable = new TableView<>();
         configureIncomeTable(incomeTable);
+
+        // Create input for adding new income
         HBox incomeInput = createIncomeInput(incomeTable);
+
+        // Create buttons for deleting and editing income
         HBox incomeButtons = createIncomeButtons(incomeTable);
 
+        // Add all components to the pane
         incomePane.getChildren().addAll(incomeLabel, incomeTable, incomeInput, incomeButtons);
         return incomePane;
     }
 
+
+    /**
+     * Creates a pane for displaying and adding expense data.
+     *
+     * @return a {@link VBox} containing the expense pane
+     */
     private VBox createExpensePane() {
+        // Create a VBox for the expense pane
         VBox expensePane = new VBox(10);
+
+        // Set the padding and alignment of the pane
         expensePane.setPadding(new Insets(10));
         expensePane.setAlignment(Pos.TOP_CENTER);
 
+        // Create a label for the expenses
         Label expenseLabel = new Label("Expenses:");
+
+        // Create a table for displaying the expenses
         TableView<Expense> expenseTable = new TableView<>();
         configureExpenseTable(expenseTable);
+
+        // Create a HBox for adding new expenses
         HBox expenseInput = createExpenseInput(expenseTable);
+
+        // Create a HBox for deleting and editing expenses
         HBox expenseButtons = createExpenseButtons(expenseTable);
 
+        // Add all components to the pane
         expensePane.getChildren().addAll(expenseLabel, expenseTable, expenseInput, expenseButtons);
         return expensePane;
     }
 
+    /**
+     * Creates a pane for displaying and adding subscription data.
+     *
+     * @return a {@link VBox} containing the subscription pane
+     */
     private VBox createSubscriptionPane() {
+        // Create a VBox for the subscription pane
         VBox subscriptionPane = new VBox(10);
+
+        // Set the padding and alignment of the pane
         subscriptionPane.setPadding(new Insets(10));
         subscriptionPane.setAlignment(Pos.TOP_CENTER);
 
+        // Create a label for the subscriptions
         Label subscriptionLabel = new Label("Subscriptions:");
+
+        // Create a table for displaying the subscriptions
         TableView<Subscription> subscriptionTable = new TableView<>();
         configureSubscriptionTable(subscriptionTable);
+
+        // Create a HBox for adding new subscriptions
         HBox subscriptionInput = createSubscriptionInput(subscriptionTable);
+
+        // Create a HBox for deleting and editing subscriptions
         HBox subscriptionButtons = createSubscriptionButtons(subscriptionTable);
 
+        // Add all components to the pane
         subscriptionPane.getChildren().addAll(subscriptionLabel, subscriptionTable, subscriptionInput, subscriptionButtons);
         return subscriptionPane;
     }
 
+    /**
+     * Creates a pane for displaying financial statement information.
+     *
+     * @return a {@link VBox} containing the statement pane
+     */
     private VBox createStatementPane() {
         statementPane = new VBox(10);
         statementPane.setPadding(new Insets(10));
         statementPane.setAlignment(Pos.TOP_CENTER);
 
         Label statementLabel = new Label("Total Statement:");
-
         summaryTable = new TableView<>();
         configureSummaryTable();
-
         pieChart = new PieChart();
         updatePieChart();
-
         lineChart = createLineChart();
         updateLineChart();
 
@@ -159,10 +238,17 @@ public class BudgetApp extends Application {
         Button exportDataButton = new Button("Export Data");
         exportDataButton.setOnAction(e -> exportData());
 
-        statementPane.getChildren().addAll(statementLabel, summaryTable, pieChart, lineChart, clearAllDataButton, exportDataButton);
+        // Add the Import Data button
+        Button importDataButton = new Button("Import Data");
+        importDataButton.setOnAction(e -> importData());
+
+        statementPane.getChildren().addAll(statementLabel, summaryTable, pieChart, lineChart, clearAllDataButton, exportDataButton, importDataButton);
         checkForData(statementPane);
         return statementPane;
     }
+    /**
+     * Configures the summary table.
+     */
     private void configureSummaryTable() {
         TableColumn<SummaryItem, String> categoryColumn = new TableColumn<>("Category");
         categoryColumn.setCellValueFactory(cellData -> cellData.getValue().categoryProperty());
@@ -174,84 +260,153 @@ public class BudgetApp extends Application {
         updateSummaryTable();
     }
 
+    /**
+     * Updates the summary table by adding new data and clearing any existing data.
+     */
     private void updateSummaryTable() {
+        // Clear any existing data in the table
         summaryTable.getItems().clear();
+
+        // Add new data to the table
         summaryTable.getItems().add(new SummaryItem("Total Income", calculateTotalIncome()));
         summaryTable.getItems().add(new SummaryItem("Total Expenses", calculateTotalExpenses()));
         summaryTable.getItems().add(new SummaryItem("Total Subscriptions", calculateTotalSubscriptions()));
         summaryTable.getItems().add(new SummaryItem("Free Income", calculateFreeIncome()));
     }
 
+    /**
+     * Updates the statement pane by calling the other update methods.
+     */
     private void updateStatementPane() {
+        // Update the summary table
         updateSummaryTable();
+
+        // Update the pie chart
         updatePieChart();
+
+        // Update the line chart
         updateLineChart();
+
+        // Update the prompt text
         updatePrompt();
     }
-
+    /**
+     * Updates the pie chart with the latest financial data.
+     * Clears any existing data and adds new data for income, expenses, and subscriptions.
+     * Sets colors for each data slice and hides the legend.
+     */
     private void updatePieChart() {
+        // Clear existing data from the pie chart
         pieChart.getData().clear();
+
+        // Create data slices for income, expenses, and subscriptions
         PieChart.Data incomeData = new PieChart.Data("Income", calculateTotalIncome());
         PieChart.Data expenseData = new PieChart.Data("Expenses", calculateTotalExpenses());
         PieChart.Data subscriptionData = new PieChart.Data("Subscriptions", calculateTotalSubscriptions());
 
+        // Add the data slices to the pie chart
         pieChart.getData().addAll(incomeData, expenseData, subscriptionData);
 
+        // Set custom colors for each data slice
         incomeData.getNode().setStyle("-fx-pie-color: #808080;");
         expenseData.getNode().setStyle("-fx-pie-color: #a9a9a9;");
         subscriptionData.getNode().setStyle("-fx-pie-color: #d3d3d3;");
 
+        // Hide the legend on the pie chart
         pieChart.setLegendVisible(false);
     }
-
+    /**
+     * Creates a line chart for displaying the income and expenses over time.
+     *
+     * @return a {@link LineChart} for displaying the financial data
+     */
     private LineChart<String, Number> createLineChart() {
+        // Create the x-axis, which will display the categories
         CategoryAxis xAxis = new CategoryAxis();
         xAxis.setLabel("Category");
 
+        // Create the y-axis, which will display the amounts
         NumberAxis yAxis = new NumberAxis();
         yAxis.setLabel("Amount");
 
+        // Create a line chart for displaying the financial data
         LineChart<String, Number> lineChart = new LineChart<>(xAxis, yAxis);
+        // Set the title to an empty string, which will hide the title
         lineChart.setTitle("");
         return lineChart;
     }
-
+    /**
+     * Updates the line chart by clearing any existing data and adding new data for income, expenses, and subscriptions.
+     * Creates a series and adds data points for income, expenses, and subscriptions.
+     * Adds the series to the line chart.
+     * Sets the stroke and fill colors for each data point.
+     */
     private void updateLineChart() {
+        // Clear any existing data from the line chart
         lineChart.getData().clear();
 
+        // Create a series for the financial data
         XYChart.Series<String, Number> series = new XYChart.Series<>();
+        // Set the name of the series
         series.setName("Financial Data");
 
+        // Add data points for income, expenses, and subscriptions
         series.getData().add(new XYChart.Data<>("Income", calculateTotalIncome()));
         series.getData().add(new XYChart.Data<>("Expenses", calculateTotalExpenses()));
         series.getData().add(new XYChart.Data<>("Subscriptions", calculateTotalSubscriptions()));
 
+        // Add the series to the line chart
         lineChart.getData().add(series);
 
+        // Set the stroke and fill colors for each data point
         for (XYChart.Data<String, Number> data : series.getData()) {
             data.getNode().setStyle("-fx-stroke: #808080; -fx-background-color: #808080, white;");
         }
     }
+    /**
+     * Calculates the total income.
+     * @return the total income
+     */
     private double calculateTotalIncome() {
         return incomes.stream().mapToDouble(Income::getAmount).sum();
     }
 
+    /**
+     * Calculates the total expenses.
+     * @return the total expenses
+     */
     private double calculateTotalExpenses() {
         return expenses.stream().mapToDouble(Expense::getAmount).sum();
     }
 
+    /**
+     * Calculates the total subscriptions.
+     * @return the total subscriptions
+     */
     private double calculateTotalSubscriptions() {
         return subscriptions.stream().mapToDouble(Subscription::getCost).sum();
     }
 
+    /**
+     * Calculates the free income, which is the total income minus the total expenses and subscriptions.
+     * @return the free income
+     */
     private double calculateFreeIncome() {
         return calculateTotalIncome() - (calculateTotalExpenses() + calculateTotalSubscriptions());
     }
+    /**
+     * Updates the prompt text that is displayed when there is no financial data.
+     * If there is no financial data, it adds a label and a hyperlink to the statement pane.
+     * If there is financial data, it removes the label and hyperlink from the statement pane.
+     */
     private void updatePrompt() {
         if (promptLabel == null) {
+            // The label that is displayed when there is no financial data
             promptLabel = new Label("No financial data available. Please add some data.");
         }
         if (addDataLink == null) {
+            // The hyperlink that is displayed when there is no financial data
+            // It navigates to the income tab when clicked
             addDataLink = new Hyperlink("Go to Income Tab");
             addDataLink.setOnAction(e -> {
                 TabPane tabPane = (TabPane) statementPane.getScene().getRoot().lookup(".tab-pane");
@@ -259,6 +414,8 @@ public class BudgetApp extends Application {
             });
         }
 
+        // If there is no financial data, add the label and hyperlink to the statement pane
+        // If there is financial data, remove the label and hyperlink from the statement pane
         if (incomes.isEmpty() && expenses.isEmpty() && subscriptions.isEmpty()) {
             if (!statementPane.getChildren().contains(promptLabel)) {
                 statementPane.getChildren().addAll(promptLabel, addDataLink);
@@ -267,77 +424,140 @@ public class BudgetApp extends Application {
             statementPane.getChildren().removeAll(promptLabel, addDataLink);
         }
     }
-
+    /**
+     * Creates a HBox for adding new income to the income table.
+     * It contains a TextField for the source, a TextField for the amount, and a Button to add the income.
+     * When the add button is clicked, it creates an Income object and adds it to the incomes list and the table.
+     * It clears the text fields and animates the addition of the new row to the table.
+     * It also updates the statement pane and saves the financial data.
+     * If the amount is not a valid number, it shows an error dialog.
+     * @param table the table to add the income to
+     * @return the HBox with the input fields and button
+     */
     private HBox createIncomeInput(TableView<Income> table) {
+        // The text field for the source
         TextField sourceField = new TextField();
         sourceField.setPromptText("Source");
+        // The text field for the amount
         TextField amountField = new TextField();
         amountField.setPromptText("Amount");
+        // The button to add the income
         Button addButton = new Button("Add");
         addButton.setOnAction(e -> {
             try {
+                // Get the source and amount from the text fields
                 String source = sourceField.getText();
                 double amount = Double.parseDouble(amountField.getText());
+                // Create an Income object and add it to the incomes list and the table
                 Income income = new Income(source, amount);
                 incomes.add(income);
                 table.getItems().add(income);
+                // Clear the text fields
                 sourceField.clear();
                 amountField.clear();
+                // Animate the addition of the new row to the table
                 animateAddition(table);
+                // Update the statement pane
                 updateStatementPane();
+                // Save the financial data
                 saveFinancialData();
             } catch (NumberFormatException ex) {
+                // Show an error dialog if the amount is not a valid number
                 showErrorDialog("Invalid input", "Please enter a valid number for the amount.");
             }
         });
+        // Make the text fields take up all the available horizontal space
         HBox.setHgrow(sourceField, Priority.ALWAYS);
         HBox.setHgrow(amountField, Priority.ALWAYS);
         return new HBox(10, sourceField, amountField, addButton);
     }
-
+    /**
+     * Creates a HBox for adding new expenses to the expense table.
+     * It contains a TextField for the category, a TextField for the amount, and a Button to add the expense.
+     * When the add button is clicked, it creates an Expense object and adds it to the expenses list and the table.
+     * It clears the text fields and animates the addition of the new row to the table.
+     * It also updates the statement pane and saves the financial data.
+     * If the amount is not a valid number, it shows an error dialog.
+     * @param table the table to add the expense to
+     * @return the HBox with the input fields and button
+     */
     private HBox createExpenseInput(TableView<Expense> table) {
+        // The text field for the category
         TextField categoryField = new TextField();
         categoryField.setPromptText("Category");
+        // The text field for the amount
         TextField amountField = new TextField();
         amountField.setPromptText("Amount");
+        // The button to add the expense
         Button addButton = new Button("Add");
         addButton.setOnAction(e -> {
             try {
+                // Get the category and amount from the text fields
                 String category = categoryField.getText();
                 double amount = Double.parseDouble(amountField.getText());
+                // Create an Expense object and add it to the expenses list and the table
                 Expense expense = new Expense(category, amount);
                 expenses.add(expense);
                 table.getItems().add(expense);
+                // Clear the text fields
                 categoryField.clear();
                 amountField.clear();
+                // Animate the addition of the new row to the table
                 animateAddition(table);
+                // Update the statement pane
                 updateStatementPane();
+                // Save the financial data
                 saveFinancialData();
             } catch (NumberFormatException ex) {
+                // Show an error dialog if the amount is not a valid number
                 showErrorDialog("Invalid input", "Please enter a valid number for the amount.");
             }
         });
+        // Make the text fields take up all the available horizontal space
         HBox.setHgrow(categoryField, Priority.ALWAYS);
         HBox.setHgrow(amountField, Priority.ALWAYS);
         return new HBox(10, categoryField, amountField, addButton);
     }
-
+    /**
+     * Creates a HBox for adding new subscriptions to the subscription table.
+     * It contains a TextField for the name, a TextField for the cost, and a Button to add the subscription.
+     * When the add button is clicked, it creates a Subscription object and adds it to the subscriptions list and the table.
+     * It clears the text fields and animates the addition of the new row to the table.
+     * It also updates the statement pane and saves the financial data.
+     * If the cost is not a valid number, it shows an error dialog.
+     * 
+     * @param table the table to add the subscription to
+     * @return the HBox with the input fields and button
+     */
     private HBox createSubscriptionInput(TableView<Subscription> table) {
+        // The text field for the subscription name
         TextField nameField = new TextField();
         nameField.setPromptText("Name");
+        
+        // The text field for the subscription cost
         TextField costField = new TextField();
         costField.setPromptText("Cost");
+        
+        // The button to add the subscription
         Button addButton = new Button("Add");
         addButton.setOnAction(e -> {
             try {
+                // Get the name and cost from the text fields
                 String name = nameField.getText();
                 double cost = Double.parseDouble(costField.getText());
+                
+                // Create a Subscription object and add it to the subscriptions list and the table
                 Subscription subscription = new Subscription(name, cost);
                 subscriptions.add(subscription);
                 table.getItems().add(subscription);
+                
+                // Clear the text fields
                 nameField.clear();
                 costField.clear();
+                
+                // Animate the addition of the new row to the table
                 animateAddition(table);
+                
                 updateStatementPane();
                 saveFinancialData();
             } catch (NumberFormatException ex) {
@@ -348,20 +568,47 @@ public class BudgetApp extends Application {
         HBox.setHgrow(costField, Priority.ALWAYS);
         return new HBox(10, nameField, costField, addButton);
     }
-
+    /**
+     * Displays an error dialog with the specified title and message.
+     *
+     * @param title   the title of the error dialog
+     * @param message the message content of the error dialog
+     */
     private void showErrorDialog(String title, String message) {
+        // Create an error alert dialog
         Alert alert = new Alert(Alert.AlertType.ERROR);
+
+        // Set the dialog title
         alert.setTitle(title);
+
+        // Remove the header text for a cleaner look
         alert.setHeaderText(null);
+
+        // Set the content of the dialog with the provided message
         alert.setContentText(message);
+
+        // Show the dialog and wait for the user to close it
         alert.showAndWait();
     }
 
+    /**
+     * Animates the addition of the new row to the table by translating it into place.
+     * This makes the addition of the new row look more visually appealing.
+     *
+     * @param table the table to animate the addition of the new row
+     */
     private void animateAddition(TableView<?> table) {
+        // Create a TranslateTransition to animate the addition of the new row
         TranslateTransition transition = new TranslateTransition(Duration.millis(300), table);
+
+        // Set the starting and ending positions of the transition
         transition.setFromY(-10);
         transition.setToY(0);
+
+        // Set the interpolator for a smoother animation
         transition.setInterpolator(Interpolator.EASE_OUT);
+
+        // Play the animation
         transition.play();
     }
 
@@ -390,32 +637,52 @@ public class BudgetApp extends Application {
         return new HBox(10, deleteButton, clearButton);
     }
 
+    /**
+     * Creates a pane with buttons for deleting a selected expense and clearing all expenses.
+     *
+     * @param table the table of expenses
+     * @return a pane with the buttons
+     */
     private HBox createExpenseButtons(TableView<Expense> table) {
+        // Create a button for deleting the selected expense
         Button deleteButton = new Button("Delete Selected");
         deleteButton.setOnAction(e -> {
             Expense selected = table.getSelectionModel().getSelectedItem();
             if (selected != null) {
+                // Remove the selected expense from the list and table
                 expenses.remove(selected);
                 table.getItems().remove(selected);
+                // Update the statement pane and save the financial data
                 updateStatementPane();
                 saveFinancialData();
             }
         });
 
+        // Create a button for clearing all expenses
         Button clearButton = new Button("Clear All");
         clearButton.setOnAction(e -> {
             if (showConfirmationDialog("Are you sure you want to clear all expenses?")) {
+                // Clear all expenses from the list and table
                 expenses.clear();
                 table.getItems().clear();
+                // Update the statement pane and save the financial data
                 updateStatementPane();
                 saveFinancialData();
             }
         });
 
+        // Return an HBox containing the buttons
         return new HBox(10, deleteButton, clearButton);
     }
-
+    /**
+     * Creates a pane with buttons for deleting a selected subscription and
+     * clearing all subscriptions.
+     *
+     * @param table the table of subscriptions
+     * @return a pane with the buttons
+     */
     private HBox createSubscriptionButtons(TableView<Subscription> table) {
+        // Button for deleting the selected subscription
         Button deleteButton = new Button("Delete Selected");
         deleteButton.setOnAction(e -> {
             Subscription selected = table.getSelectionModel().getSelectedItem();
@@ -427,6 +694,7 @@ public class BudgetApp extends Application {
             }
         });
 
+        // Button for clearing all subscriptions
         Button clearButton = new Button("Clear All");
         clearButton.setOnAction(e -> {
             if (showConfirmationDialog("Are you sure you want to clear all subscriptions?")) {
@@ -437,8 +705,16 @@ public class BudgetApp extends Application {
             }
         });
 
+        // Layout the buttons
         return new HBox(10, deleteButton, clearButton);
     }
+    /**
+     * Displays a confirmation dialog to the user with the given message, and
+     * returns {@code true} if the user clicks "OK" and {@code false} otherwise.
+     *
+     * @param message the message to display in the confirmation dialog
+     * @return whether the user confirmed the action
+     */
 
     private boolean showConfirmationDialog(String message) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -449,109 +725,184 @@ public class BudgetApp extends Application {
         return alert.showAndWait().filter(response -> response == ButtonType.OK).isPresent();
     }
 
+
+    /**
+     * Configures the income table with columns for source and amount, and populates it with income data.
+     *
+     * @param table the TableView to configure
+     */
     private void configureIncomeTable(TableView<Income> table) {
+        // Create and set up the source column
         TableColumn<Income, String> sourceColumn = new TableColumn<>("Source");
         sourceColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getSource()));
 
+        // Create and set up the amount column
         TableColumn<Income, Double> amountColumn = new TableColumn<>("Amount");
         amountColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleDoubleProperty(cellData.getValue().getAmount()).asObject());
 
+        // Add columns to the table
         table.getColumns().addAll(sourceColumn, amountColumn);
+
+        // Populate the table with income data
         table.setItems(javafx.collections.FXCollections.observableArrayList(incomes));
     }
 
+
+    /**
+     * Configures the expense table with columns for category and amount, and populates it with expense data.
+     *
+     * @param table the TableView to configure
+     */
     private void configureExpenseTable(TableView<Expense> table) {
+        // Create and set up the category column
         TableColumn<Expense, String> categoryColumn = new TableColumn<>("Category");
         categoryColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getCategory()));
 
+        // Create and set up the amount column
         TableColumn<Expense, Double> amountColumn = new TableColumn<>("Amount");
         amountColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleDoubleProperty(cellData.getValue().getAmount()).asObject());
 
+        // Add columns to the table
         table.getColumns().addAll(categoryColumn, amountColumn);
+
+        // Populate the table with expense data
         table.setItems(javafx.collections.FXCollections.observableArrayList(expenses));
     }
 
+    /**
+     * Configures the subscription table with columns for name and cost, and populates it with subscription data.
+     *
+     * @param table the TableView to configure
+     */
     private void configureSubscriptionTable(TableView<Subscription> table) {
+        // Create and set up the name column
         TableColumn<Subscription, String> nameColumn = new TableColumn<>("Name");
         nameColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getName()));
 
+        // Create and set up the cost column
         TableColumn<Subscription, Double> costColumn = new TableColumn<>("Cost");
         costColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleDoubleProperty(cellData.getValue().getCost()).asObject());
 
+        // Add columns to the table
         table.getColumns().addAll(nameColumn, costColumn);
+
+        // Populate the table with subscription data
         table.setItems(javafx.collections.FXCollections.observableArrayList(subscriptions));
     }
 
+    /**
+     * Loads the financial data from a file. If the file does not exist, creates a new file and saves an empty list of financial data.
+     * If the file exists, reads the financial data from the file.
+     */
     private void loadFinancialData() {
         File dataFile = new File("financial_data.dat");
         if (!dataFile.exists()) {
             try {
+                // Create a new file if the file does not exist
                 dataFile.createNewFile();
+                // Create empty lists for income, expenses, and subscriptions
                 List<Income> emptyIncomes = new ArrayList<>();
                 List<Expense> emptyExpenses = new ArrayList<>();
                 List<Subscription> emptySubscriptions = new ArrayList<>();
+                // Save the empty lists to the file
                 try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(dataFile))) {
                     oos.writeObject(emptyIncomes);
                     oos.writeObject(emptyExpenses);
                     oos.writeObject(emptySubscriptions);
                 }
             } catch (IOException e) {
+                // Handle any exceptions that occur while creating the file or saving the data
                 e.printStackTrace();
             }
         }
 
         try {
+            // Load the financial data from the file
             List<Object> data = DataStorage.loadData();
+            // Cast the loaded data to the correct types
             incomes = (List<Income>) data.get(0);
             expenses = (List<Expense>) data.get(1);
             subscriptions = (List<Subscription>) data.get(2);
         } catch (IOException | ClassNotFoundException e) {
+            // Handle any exceptions that occur while loading the data
             e.printStackTrace();
         }
     }
 
+    /**
+     * Saves the financial data to a file. This method is called whenever the data is changed, such as when a new income or expense is added.
+     * If an exception occurs while saving the data, it is printed to the console.
+     */
     private void saveFinancialData() {
         try {
+            // Save the financial data to a file
             DataStorage.saveData(incomes, expenses, subscriptions);
         } catch (IOException e) {
+            // Handle any exceptions that occur while saving the data
             e.printStackTrace();
         }
     }
-
     private void updateAllTables() {
+        // Clear and update the summary table
         summaryTable.getItems().clear();
         updateSummaryTable();
 
+        // Locate and clear the income table
         TableView<Income> incomeTable = (TableView<Income>) ((VBox) ((Tab) ((TabPane) summaryTable.getScene().getRoot().lookup(".tab-pane")).getTabs().get(0)).getContent()).getChildren().get(1);
         incomeTable.getItems().clear();
 
+        // Locate and clear the expense table
         TableView<Expense> expenseTable = (TableView<Expense>) ((VBox) ((Tab) ((TabPane) summaryTable.getScene().getRoot().lookup(".tab-pane")).getTabs().get(1)).getContent()).getChildren().get(1);
         expenseTable.getItems().clear();
 
+        // Locate and clear the subscription table
         TableView<Subscription> subscriptionTable = (TableView<Subscription>) ((VBox) ((Tab) ((TabPane) summaryTable.getScene().getRoot().lookup(".tab-pane")).getTabs().get(2)).getContent()).getChildren().get(1);
         subscriptionTable.getItems().clear();
     }
 
     private void checkForData(VBox statementPane) {
+        // Check if there is no financial data available
         if (incomes.isEmpty() && expenses.isEmpty() && subscriptions.isEmpty()) {
+            // Create a label to prompt the user to add data
             promptLabel = new Label("No financial data available. Please add some data.");
+
+            // Create a hyperlink that navigates to the Income tab
             addDataLink = new Hyperlink("Go to Income Tab");
             addDataLink.setOnAction(e -> {
+                // Locate the tab pane and select the Income tab
                 TabPane tabPane = (TabPane) statementPane.getScene().getRoot().lookup(".tab-pane");
                 tabPane.getSelectionModel().select(0);
             });
+
+            // Add the prompt label and hyperlink to the statement pane
             statementPane.getChildren().addAll(promptLabel, addDataLink);
         }
     }
+    /**
+     * Validates the input in the given text fields.
+     * If any of the fields are empty, it shows an error dialog and returns false.
+     * Otherwise, it returns true.
+     * @param fields the fields to validate
+     * @return true if the input is valid, false otherwise
+     */
     private boolean validateInput(TextField... fields) {
+        // Iterate over the fields
         for (TextField field : fields) {
+            // If the field is empty, show an error dialog and return false
             if (field.getText().trim().isEmpty()) {
                 showErrorDialog("Invalid input", "All fields must be filled.");
                 return false;
             }
         }
+        // If no errors were found, return true
         return true;
     }
+    /**
+     * Shows a confirmation dialog with the given title and message.
+     * The dialog contains a single OK button and is modal, meaning it must be closed before the program can continue.
+     * @param title the title of the dialog
+     * @param message the message content of the dialog
+     */
     private void showConfirmationDialog(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
@@ -560,26 +911,47 @@ public class BudgetApp extends Application {
         alert.showAndWait();
     }
 
+    /**
+     * Exports the financial data to a JSON file.
+     * The exported data is represented as a JSON object with three fields: "incomes", "expenses", and "subscriptions".
+     * Each field contains a JSON array of the relevant data.
+     */
     private void exportData() {
+        if (incomes.isEmpty() && expenses.isEmpty() && subscriptions.isEmpty()) {
+            showErrorDialog("No Data to Export", "There is no financial data to export.");
+            return;
+        }
+
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Export Data");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON Files", "*.json"));
         File file = fileChooser.showSaveDialog(null);
         if (file != null) {
             try (FileWriter writer = new FileWriter(file)) {
+                // Create a JSON object to store the data
                 Gson gson = new Gson();
                 JsonObject data = new JsonObject();
+
+                // Add the incomes to the JSON object
                 data.add("incomes", gson.toJsonTree(incomes));
+
+                // Add the expenses to the JSON object
                 data.add("expenses", gson.toJsonTree(expenses));
+
+                // Add the subscriptions to the JSON object
                 data.add("subscriptions", gson.toJsonTree(subscriptions));
+
+                // Write the JSON object to the file
                 gson.toJson(data, writer);
+
+                // Show a confirmation dialog to let the user know that the export was successful
                 showConfirmationDialog("Export Successful", "Data exported successfully.");
             } catch (IOException e) {
+                // Show an error dialog if there was an error exporting the data
                 showErrorDialog("Export Failed", "Failed to export data.");
             }
         }
     }
-
     private void importData() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Import Data");
@@ -589,54 +961,26 @@ public class BudgetApp extends Application {
             try (FileReader reader = new FileReader(file)) {
                 Gson gson = new Gson();
                 JsonObject data = gson.fromJson(reader, JsonObject.class);
+                // Read the incomes from the JSON object
                 incomes = gson.fromJson(data.get("incomes"), new TypeToken<List<Income>>(){}.getType());
+                // Read the expenses from the JSON object
                 expenses = gson.fromJson(data.get("expenses"), new TypeToken<List<Expense>>(){}.getType());
+                // Read the subscriptions from the JSON object
                 subscriptions = gson.fromJson(data.get("subscriptions"), new TypeToken<List<Subscription>>(){}.getType());
+                // Update all the tables
                 updateAllTables();
+                // Update the statement pane
                 updateStatementPane();
+                // Show a confirmation dialog to let the user know that the import was successful
                 showConfirmationDialog("Import Successful", "Data imported successfully.");
             } catch (IOException e) {
+                // Show an error dialog if there was an error importing the data
                 showErrorDialog("Import Failed", "Failed to import data.");
             }
         }
     }
-
-    private void generateReport() {
-        StringBuilder report = new StringBuilder();
-        report.append("Financial Report\n\n");
-        report.append("Total Income: ").append(calculateTotalIncome()).append("\n");
-        report.append("Total Expenses: ").append(calculateTotalExpenses()).append("\n");
-        report.append("Total Subscriptions: ").append(calculateTotalSubscriptions()).append("\n");
-        report.append("Free Income: ").append(calculateFreeIncome()).append("\n");
-
-        showReportDialog("Financial Report", report.toString());
-    }
-
-    private void showReportDialog(String title, String report) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(report);
-        alert.showAndWait();
-    }
-    private void saveUserPreferences() {
-        Preferences prefs = Preferences.userNodeForPackage(BudgetApp.class);
-        prefs.put("theme", "light");
-    }
-
-    private void loadUserPreferences() {
-        Preferences prefs = Preferences.userNodeForPackage(BudgetApp.class);
-        String theme = prefs.get("theme", "light");
-    }
-
-
     public static void main(String[] args) {
         launch(args);
     }
 }
-
 // to do:
-// add commments
-// add more comments
-// idk
-// im done
