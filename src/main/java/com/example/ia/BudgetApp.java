@@ -860,26 +860,14 @@ public class BudgetApp extends Application {
         File file = fileChooser.showSaveDialog(null);
         if (file != null) {
             try (FileWriter writer = new FileWriter(file)) {
-                // Create a JSON object to store the data
-                Gson gson = new Gson();
+                Gson gson = GsonUtil.createGson();
                 JsonObject data = new JsonObject();
-
-                // Add the incomes to the JSON object
                 data.add("incomes", gson.toJsonTree(incomes));
-
-                // Add the expenses to the JSON object
                 data.add("expenses", gson.toJsonTree(expenses));
-
-                // Add the subscriptions to the JSON object
                 data.add("subscriptions", gson.toJsonTree(subscriptions));
-
-                // Write the JSON object to the file
                 gson.toJson(data, writer);
-
-                // Show a confirmation dialog to let the user know that the export was successful
                 showConfirmationDialog("Export Successful", "Data exported successfully.");
             } catch (IOException e) {
-                // Show an error dialog if there was an error exporting the data
                 showErrorDialog("Export Failed", "Failed to export data.");
             }
         }
@@ -891,22 +879,15 @@ public class BudgetApp extends Application {
         File file = fileChooser.showOpenDialog(null);
         if (file != null) {
             try (FileReader reader = new FileReader(file)) {
-                Gson gson = new Gson();
+                Gson gson = GsonUtil.createGson();
                 JsonObject data = gson.fromJson(reader, JsonObject.class);
-                // Read the incomes from the JSON object
                 incomes = gson.fromJson(data.get("incomes"), new TypeToken<List<Income>>(){}.getType());
-                // Read the expenses from the JSON object
                 expenses = gson.fromJson(data.get("expenses"), new TypeToken<List<Expense>>(){}.getType());
-                // Read the subscriptions from the JSON object
                 subscriptions = gson.fromJson(data.get("subscriptions"), new TypeToken<List<Subscription>>(){}.getType());
-                // Update all the tables
                 updateAllTables();
-                // Update the statement pane
                 updateStatementPane();
-                // Show a confirmation dialog to let the user know that the import was successful
                 showConfirmationDialog("Import Successful", "Data imported successfully.");
             } catch (IOException e) {
-                // Show an error dialog if there was an error importing the data
                 showErrorDialog("Import Failed", "Failed to import data.");
             }
         }
