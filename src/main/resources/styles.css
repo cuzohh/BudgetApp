@@ -1,30 +1,37 @@
 /* styles.css */
+
+/* Set the font family and background color for the root node */
 .root {
     -fx-font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     -fx-background-color: #f0f0f0;
 }
 
+/* Set the background color for the tab pane */
 .tab-pane {
     -fx-background-color: #f0f0f0;
 }
 
+/* Set the font size, weight, and color for labels */
 .label {
     -fx-font-size: 16px;
     -fx-font-weight: bold;
     -fx-text-fill: #333333;
 }
 
+/* Set the background color and border color for tables */
 .table-view {
     -fx-background-color: #ffffff;
     -fx-border-color: #cccccc;
 }
 
+/* Set the background color, text color, and font weight for buttons */
 .button {
     -fx-background-color: #333333;
     -fx-text-fill: #ffffff;
     -fx-font-weight: bold;
 }
 
+/* Change the background color on hover */
 .button:hover {
     -fx-background-color: #555555;
 }
