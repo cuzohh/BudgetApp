@@ -54,7 +54,7 @@ public class BudgetApp extends Application {
     private Hyperlink addDataLink;
     private VBox statementPane;
 
-    
+
     private void checkForUpcomingSubscriptions() {
         LocalDate today = LocalDate.now();
         for (Subscription subscription : subscriptions) {
@@ -85,7 +85,7 @@ public class BudgetApp extends Application {
                     // Add one year to the date
                     nextPaymentDate = nextPaymentDate.plusYears(1);
                     break;
-                // Add more cases if needed prolly not neccessary tho
+                // Add more cases if needed prolly not necessary tho
             }
         }
         return nextPaymentDate;
