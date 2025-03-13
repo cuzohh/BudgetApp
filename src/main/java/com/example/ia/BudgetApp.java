@@ -39,6 +39,10 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.JsonObject;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+
+
 public class BudgetApp extends Application {
     private List<Income> incomes = new ArrayList<>();
     private List<Expense> expenses = new ArrayList<>();
@@ -50,15 +54,50 @@ public class BudgetApp extends Application {
     private Hyperlink addDataLink;
     private VBox statementPane;
 
-    @Override
-    /*
-      Main entry point for the application.
+    private void checkForUpcomingSubscriptions() {
+        LocalDate today = LocalDate.now();
+        for (Subscription subscription : subscriptions) {
+            LocalDate nextPaymentDate = calculateNextPaymentDate(subscription);
+            long daysUntilNextPayment = ChronoUnit.DAYS.between(today, nextPaymentDate);
+            if (daysUntilNextPayment <= subscription.getNotificationDays()) {
+                showNotification("Upcoming Subscription", "Your subscription to " + subscription.getName() + " is due in " + daysUntilNextPayment + " days.");
+            }
+        }
+    }
 
-      @param primaryStage the primary stage of the application
-     */
+    private LocalDate calculateNextPaymentDate(Subscription subscription) {
+        LocalDate nextPaymentDate = subscription.getStartDate();
+        while (nextPaymentDate.isBefore(LocalDate.now())) {
+            switch (subscription.getRecurrencePeriod().toLowerCase()) {
+                case "weekly":
+                    nextPaymentDate = nextPaymentDate.plusWeeks(1);
+                    break;
+                case "monthly":
+                    nextPaymentDate = nextPaymentDate.plusMonths(1);
+                    break;
+                case "yearly":
+                    nextPaymentDate = nextPaymentDate.plusYears(1);
+                    break;
+                // Add more cases as needed
+            }
+        }
+        return nextPaymentDate;
+    }
+
+    private void showNotification(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+    @Override
     public void start(Stage primaryStage) {
         // Load the financial data from storage
         loadFinancialData();
+
+        // Check for upcoming subscriptions
+        checkForUpcomingSubscriptions();
 
         // Create a tab pane for displaying multiple panes
         TabPane tabPane = new TabPane();
@@ -99,7 +138,7 @@ public class BudgetApp extends Application {
         VBox.setVgrow(tabPane, Priority.ALWAYS);
 
         // Create a scene for the root pane
-        Scene mainScene = new Scene(root, 800, 600);
+        Scene mainScene = new Scene(root, 1000, 800); // Set initial size to 1000x800
 
         // Load the CSS styles for the application
         mainScene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/styles.css")).toExternalForm());
@@ -113,7 +152,6 @@ public class BudgetApp extends Application {
         // Show the primary stage
         primaryStage.show();
     }
-
 
     /**
      * Creates a pane for displaying income data.
@@ -501,42 +539,70 @@ public class BudgetApp extends Application {
         return new HBox(10, categoryField, amountField, addButton);
     }
 
-    /**
-     * Creates a pane for adding new subscription data.
-     * It contains a text field for the name and a text field for the cost,
-     * and a button for adding the new subscription data.
-     * It also animates the addition of the new row to the table by translating it into place.
-     *
-     * @param table the table to add the new subscription data to
-     * @return a {@link HBox} containing the subscription input fields and button
-     */
     private HBox createSubscriptionInput(TableView<Subscription> table) {
         TextField nameField = new TextField();
         nameField.setPromptText("Name");
         TextField costField = new TextField();
         costField.setPromptText("Cost");
+        DatePicker startDatePicker = new DatePicker();
+        startDatePicker.setPromptText("Start Date");
+        ComboBox<String> recurrenceComboBox = new ComboBox<>();
+        recurrenceComboBox.getItems().addAll("Weekly", "Monthly", "Yearly");
+        recurrenceComboBox.setPromptText("Recurrence");
+        TextField notificationDaysField = new TextField();
+        notificationDaysField.setPromptText("Notify Before (days)");
+
         Button addButton = new Button("Add");
         addButton.setOnAction(e -> {
-            if (validateInput(nameField, costField)) {
+            if (validateInput(nameField, costField, recurrenceComboBox, notificationDaysField)) {
                 try {
                     String name = nameField.getText();
                     double cost = Double.parseDouble(costField.getText());
-                    Subscription subscription = new Subscription(name, cost);
+                    LocalDate startDate = startDatePicker.getValue();
+                    String recurrencePeriod = recurrenceComboBox.getValue();
+                    int notificationDays = Integer.parseInt(notificationDaysField.getText());
+
+                    Subscription subscription = new Subscription(name, cost, startDate, recurrencePeriod, notificationDays);
                     subscriptions.add(subscription);
                     table.getItems().add(subscription);
+
                     nameField.clear();
                     costField.clear();
+                    startDatePicker.setValue(null);
+                    recurrenceComboBox.setValue(null);
+                    notificationDaysField.clear();
+
                     animateAddition(table);
                     updateStatementPane();
                     saveFinancialData();
                 } catch (NumberFormatException ex) {
-                    showErrorDialog("Invalid input", "Please enter a valid number for the cost.");
+                    showErrorDialog("Invalid input", "Please enter valid numbers for cost and notification days.");
                 }
             }
         });
+
         HBox.setHgrow(nameField, Priority.ALWAYS);
         HBox.setHgrow(costField, Priority.ALWAYS);
-        return new HBox(10, nameField, costField, addButton);
+        HBox.setHgrow(startDatePicker, Priority.ALWAYS);
+        HBox.setHgrow(recurrenceComboBox, Priority.ALWAYS);
+        HBox.setHgrow(notificationDaysField, Priority.ALWAYS);
+
+        return new HBox(10, nameField, costField, startDatePicker, recurrenceComboBox, notificationDaysField, addButton);
+    }
+
+    private boolean validateInput(TextField nameField, TextField costField, ComboBox<String> recurrenceComboBox, TextField notificationDaysField) {
+        if (nameField.getText().trim().isEmpty() || costField.getText().trim().isEmpty() || recurrenceComboBox.getValue() == null || notificationDaysField.getText().trim().isEmpty()) {
+            showErrorDialog("Invalid input", "All fields must be filled.");
+            return false;
+        }
+        try {
+            Double.parseDouble(costField.getText());
+            Integer.parseInt(notificationDaysField.getText());
+        } catch (NumberFormatException e) {
+            showErrorDialog("Invalid input", "Please enter valid numbers for cost and notification days.");
+            return false;
+        }
+        return true;
     }
     /**
      * Displays an error dialog with the specified title and message.
@@ -775,24 +841,23 @@ public class BudgetApp extends Application {
         table.setItems(javafx.collections.FXCollections.observableArrayList(expenses));
     }
 
-    /**
-     * Configures the subscription table with columns for name and cost, and populates it with subscription data.
-     *
-     * @param table the TableView to configure
-     */
     private void configureSubscriptionTable(TableView<Subscription> table) {
-        // Create and set up the name column
         TableColumn<Subscription, String> nameColumn = new TableColumn<>("Name");
         nameColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getName()));
 
-        // Create and set up the cost column
         TableColumn<Subscription, Double> costColumn = new TableColumn<>("Cost");
         costColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleDoubleProperty(cellData.getValue().getCost()).asObject());
 
-        // Add columns to the table
-        table.getColumns().addAll(nameColumn, costColumn);
+        TableColumn<Subscription, LocalDate> startDateColumn = new TableColumn<>("Start Date");
+        startDateColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleObjectProperty<>(cellData.getValue().getStartDate()));
 
-        // Populate the table with subscription data
+        TableColumn<Subscription, String> recurrenceColumn = new TableColumn<>("Recurrence");
+        recurrenceColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getRecurrencePeriod()));
+
+        TableColumn<Subscription, Integer> notificationDaysColumn = new TableColumn<>("Notify Before (days)");
+        notificationDaysColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleIntegerProperty(cellData.getValue().getNotificationDays()).asObject());
+
+        table.getColumns().addAll(nameColumn, costColumn, startDateColumn, recurrenceColumn, notificationDaysColumn);
         table.setItems(javafx.collections.FXCollections.observableArrayList(subscriptions));
     }
 
