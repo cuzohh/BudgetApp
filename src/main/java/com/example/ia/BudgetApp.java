@@ -25,14 +25,15 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.FileWriter;
 import java.io.FileReader;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.prefs.Preferences;
+import java.util.Objects;
+
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -50,10 +51,10 @@ public class BudgetApp extends Application {
     private VBox statementPane;
 
     @Override
-    /**
-     * Main entry point for the application.
-     *
-     * @param primaryStage the primary stage of the application
+    /*
+      Main entry point for the application.
+
+      @param primaryStage the primary stage of the application
      */
     public void start(Stage primaryStage) {
         // Load the financial data from storage
@@ -89,7 +90,7 @@ public class BudgetApp extends Application {
         Scene scene = new Scene(tabPane, 800, 600);
 
         // Load the CSS styles for the application
-        scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
+        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/styles.css")).toExternalForm());
 
         // Create a root pane for the application
         VBox root = new VBox(tabPane);
@@ -101,7 +102,7 @@ public class BudgetApp extends Application {
         Scene mainScene = new Scene(root, 800, 600);
 
         // Load the CSS styles for the application
-        mainScene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
+        mainScene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/styles.css")).toExternalForm());
 
         // Set the scene for the primary stage
         primaryStage.setScene(mainScene);
@@ -425,143 +426,112 @@ public class BudgetApp extends Application {
         }
     }
     /**
-     * Creates a HBox for adding new income to the income table.
-     * It contains a TextField for the source, a TextField for the amount, and a Button to add the income.
-     * When the add button is clicked, it creates an Income object and adds it to the incomes list and the table.
-     * It clears the text fields and animates the addition of the new row to the table.
-     * It also updates the statement pane and saves the financial data.
-     * If the amount is not a valid number, it shows an error dialog.
-     * @param table the table to add the income to
-     * @return the HBox with the input fields and button
+     * Creates a pane for adding new income data.
+     * It contains a text field for the source and a text field for the amount,
+     * and a button for adding the new income data.
+     * It also animates the addition of the new row to the table by translating it into place.
+     *
+     * @param table the table to add the new income data to
+     * @return a {@link HBox} containing the income input fields and button
      */
     private HBox createIncomeInput(TableView<Income> table) {
-        // The text field for the source
         TextField sourceField = new TextField();
         sourceField.setPromptText("Source");
-        // The text field for the amount
         TextField amountField = new TextField();
         amountField.setPromptText("Amount");
-        // The button to add the income
         Button addButton = new Button("Add");
         addButton.setOnAction(e -> {
-            try {
-                // Get the source and amount from the text fields
-                String source = sourceField.getText();
-                double amount = Double.parseDouble(amountField.getText());
-                // Create an Income object and add it to the incomes list and the table
-                Income income = new Income(source, amount);
-                incomes.add(income);
-                table.getItems().add(income);
-                // Clear the text fields
-                sourceField.clear();
-                amountField.clear();
-                // Animate the addition of the new row to the table
-                animateAddition(table);
-                // Update the statement pane
-                updateStatementPane();
-                // Save the financial data
-                saveFinancialData();
-            } catch (NumberFormatException ex) {
-                // Show an error dialog if the amount is not a valid number
-                showErrorDialog("Invalid input", "Please enter a valid number for the amount.");
+            if (validateInput(sourceField, amountField)) {
+                try {
+                    String source = sourceField.getText();
+                    double amount = Double.parseDouble(amountField.getText());
+                    Income income = new Income(source, amount);
+                    incomes.add(income);
+                    table.getItems().add(income);
+                    sourceField.clear();
+                    amountField.clear();
+                    animateAddition(table);
+                    updateStatementPane();
+                    saveFinancialData();
+                } catch (NumberFormatException ex) {
+                    showErrorDialog("Invalid input", "Please enter a valid number for the amount.");
+                }
             }
         });
-        // Make the text fields take up all the available horizontal space
         HBox.setHgrow(sourceField, Priority.ALWAYS);
         HBox.setHgrow(amountField, Priority.ALWAYS);
         return new HBox(10, sourceField, amountField, addButton);
     }
+
     /**
-     * Creates a HBox for adding new expenses to the expense table.
-     * It contains a TextField for the category, a TextField for the amount, and a Button to add the expense.
-     * When the add button is clicked, it creates an Expense object and adds it to the expenses list and the table.
-     * It clears the text fields and animates the addition of the new row to the table.
-     * It also updates the statement pane and saves the financial data.
-     * If the amount is not a valid number, it shows an error dialog.
-     * @param table the table to add the expense to
-     * @return the HBox with the input fields and button
+     * Creates a pane for adding new expense data.
+     * It contains a text field for the category and a text field for the amount,
+     * and a button for adding the new expense data.
+     * It also animates the addition of the new row to the table by translating it into place.
+     *
+     * @param table the table to add the new expense data to
+     * @return a {@link HBox} containing the expense input fields and button
      */
     private HBox createExpenseInput(TableView<Expense> table) {
-        // The text field for the category
         TextField categoryField = new TextField();
         categoryField.setPromptText("Category");
-        // The text field for the amount
         TextField amountField = new TextField();
         amountField.setPromptText("Amount");
-        // The button to add the expense
         Button addButton = new Button("Add");
         addButton.setOnAction(e -> {
-            try {
-                // Get the category and amount from the text fields
-                String category = categoryField.getText();
-                double amount = Double.parseDouble(amountField.getText());
-                // Create an Expense object and add it to the expenses list and the table
-                Expense expense = new Expense(category, amount);
-                expenses.add(expense);
-                table.getItems().add(expense);
-                // Clear the text fields
-                categoryField.clear();
-                amountField.clear();
-                // Animate the addition of the new row to the table
-                animateAddition(table);
-                // Update the statement pane
-                updateStatementPane();
-                // Save the financial data
-                saveFinancialData();
-            } catch (NumberFormatException ex) {
-                // Show an error dialog if the amount is not a valid number
-                showErrorDialog("Invalid input", "Please enter a valid number for the amount.");
+            if (validateInput(categoryField, amountField)) {
+                try {
+                    String category = categoryField.getText();
+                    double amount = Double.parseDouble(amountField.getText());
+                    Expense expense = new Expense(category, amount);
+                    expenses.add(expense);
+                    table.getItems().add(expense);
+                    categoryField.clear();                                                                                                                                                                                                                                                                                      
+                    amountField.clear();
+                    animateAddition(table);
+                    updateStatementPane();
+                    saveFinancialData();
+                } catch (NumberFormatException ex) {
+                    showErrorDialog("Invalid input", "Please enter a valid number for the amount.");
+                }
             }
         });
-        // Make the text fields take up all the available horizontal space
         HBox.setHgrow(categoryField, Priority.ALWAYS);
         HBox.setHgrow(amountField, Priority.ALWAYS);
         return new HBox(10, categoryField, amountField, addButton);
     }
+
     /**
-     * Creates a HBox for adding new subscriptions to the subscription table.
-     * It contains a TextField for the name, a TextField for the cost, and a Button to add the subscription.
-     * When the add button is clicked, it creates a Subscription object and adds it to the subscriptions list and the table.
-     * It clears the text fields and animates the addition of the new row to the table.
-     * It also updates the statement pane and saves the financial data.
-     * If the cost is not a valid number, it shows an error dialog.
-     * 
-     * @param table the table to add the subscription to
-     * @return the HBox with the input fields and button
+     * Creates a pane for adding new subscription data.
+     * It contains a text field for the name and a text field for the cost,
+     * and a button for adding the new subscription data.
+     * It also animates the addition of the new row to the table by translating it into place.
+     *
+     * @param table the table to add the new subscription data to
+     * @return a {@link HBox} containing the subscription input fields and button
      */
     private HBox createSubscriptionInput(TableView<Subscription> table) {
-        // The text field for the subscription name
         TextField nameField = new TextField();
         nameField.setPromptText("Name");
-        
-        // The text field for the subscription cost
         TextField costField = new TextField();
         costField.setPromptText("Cost");
-        
-        // The button to add the subscription
         Button addButton = new Button("Add");
         addButton.setOnAction(e -> {
-            try {
-                // Get the name and cost from the text fields
-                String name = nameField.getText();
-                double cost = Double.parseDouble(costField.getText());
-                
-                // Create a Subscription object and add it to the subscriptions list and the table
-                Subscription subscription = new Subscription(name, cost);
-                subscriptions.add(subscription);
-                table.getItems().add(subscription);
-                
-                // Clear the text fields
-                nameField.clear();
-                costField.clear();
-                
-                // Animate the addition of the new row to the table
-                animateAddition(table);
-                
-                updateStatementPane();
-                saveFinancialData();
-            } catch (NumberFormatException ex) {
-                showErrorDialog("Invalid input", "Please enter a valid number for the cost.");
+            if (validateInput(nameField, costField)) {
+                try {
+                    String name = nameField.getText();
+                    double cost = Double.parseDouble(costField.getText());
+                    Subscription subscription = new Subscription(name, cost);
+                    subscriptions.add(subscription);
+                    table.getItems().add(subscription);
+                    nameField.clear();
+                    costField.clear();
+                    animateAddition(table);
+                    updateStatementPane();
+                    saveFinancialData();
+                } catch (NumberFormatException ex) {
+                    showErrorDialog("Invalid input", "Please enter a valid number for the cost.");
+                }
             }
         });
         HBox.setHgrow(nameField, Priority.ALWAYS);
@@ -612,29 +582,59 @@ public class BudgetApp extends Application {
         transition.play();
     }
 
+    /**
+     * Creates a pane with buttons for deleting a selected income entry and
+     * clearing all income entries.
+     *
+     * @param table the table of incomes
+     * @return a pane with the buttons
+     */
     private HBox createIncomeButtons(TableView<Income> table) {
+        // Button for deleting the selected income
+        Button deleteButton = getButton(table);
+
+        // Button for clearing all income entries
+        Button clearButton = new Button("Clear All");
+        Result result = new Result(deleteButton, clearButton);
+        result.clearButton.setOnAction(e -> {
+            if (showConfirmationDialog("Are you sure you want to clear all income sources?")) {
+                // Clear all incomes from the list and table
+                incomes.clear();
+                table.getItems().clear();
+                // Update the statement pane and save the financial data
+                updateStatementPane();
+                saveFinancialData();
+            }
+        });
+
+        // Return an HBox containing the buttons with spacing
+        return new HBox(10, result.deleteButton, result.clearButton);
+    }
+
+    private static class Result {
+        public final Button deleteButton;
+        public final Button clearButton;
+
+        public Result(Button deleteButton, Button clearButton) {
+            this.deleteButton = deleteButton;
+            this.clearButton = clearButton;
+        }
+    }
+
+    private Button getButton(TableView<Income> table) {
         Button deleteButton = new Button("Delete Selected");
         deleteButton.setOnAction(e -> {
             Income selected = table.getSelectionModel().getSelectedItem();
             if (selected != null) {
+                // Remove the selected income from the list and table
                 incomes.remove(selected);
                 table.getItems().remove(selected);
+                // Update the statement pane and save the financial data
                 updateStatementPane();
                 saveFinancialData();
             }
         });
-
-        Button clearButton = new Button("Clear All");
-        clearButton.setOnAction(e -> {
-            if (showConfirmationDialog("Are you sure you want to clear all income sources?")) {
-                incomes.clear();
-                table.getItems().clear();
-                updateStatementPane();
-                saveFinancialData();
-            }
-        });
-
-        return new HBox(10, deleteButton, clearButton);
+        return deleteButton;
     }
 
     /**
@@ -645,18 +645,7 @@ public class BudgetApp extends Application {
      */
     private HBox createExpenseButtons(TableView<Expense> table) {
         // Create a button for deleting the selected expense
-        Button deleteButton = new Button("Delete Selected");
-        deleteButton.setOnAction(e -> {
-            Expense selected = table.getSelectionModel().getSelectedItem();
-            if (selected != null) {
-                // Remove the selected expense from the list and table
-                expenses.remove(selected);
-                table.getItems().remove(selected);
-                // Update the statement pane and save the financial data
-                updateStatementPane();
-                saveFinancialData();
-            }
-        });
+        Button deleteButton = getDeleteButton(table);
 
         // Create a button for clearing all expenses
         Button clearButton = new Button("Clear All");
@@ -674,6 +663,23 @@ public class BudgetApp extends Application {
         // Return an HBox containing the buttons
         return new HBox(10, deleteButton, clearButton);
     }
+
+    private Button getDeleteButton(TableView<Expense> table) {
+        Button deleteButton = new Button("Delete Selected");
+        deleteButton.setOnAction(e -> {
+            Expense selected = table.getSelectionModel().getSelectedItem();
+            if (selected != null) {
+                // Remove the selected expense from the list and table
+                expenses.remove(selected);
+                table.getItems().remove(selected);
+                // Update the statement pane and save the financial data
+                updateStatementPane();
+                saveFinancialData();
+            }
+        });
+        return deleteButton;
+    }
+
     /**
      * Creates a pane with buttons for deleting a selected subscription and
      * clearing all subscriptions.
@@ -805,7 +811,7 @@ public class BudgetApp extends Application {
                 List<Expense> emptyExpenses = new ArrayList<>();
                 List<Subscription> emptySubscriptions = new ArrayList<>();
                 // Save the empty lists to the file
-                try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(dataFile))) {
+                try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(dataFile.toPath()))) {
                     oos.writeObject(emptyIncomes);
                     oos.writeObject(emptyExpenses);
                     oos.writeObject(emptySubscriptions);
