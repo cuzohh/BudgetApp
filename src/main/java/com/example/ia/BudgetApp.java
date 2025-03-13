@@ -285,15 +285,14 @@ public class BudgetApp extends Application {
         checkForData(statementPane);
         return statementPane;
     }
-    /**
-     * Configures the summary table.
-     */
     private void configureSummaryTable() {
         TableColumn<SummaryItem, String> categoryColumn = new TableColumn<>("Category");
         categoryColumn.setCellValueFactory(cellData -> cellData.getValue().categoryProperty());
+        categoryColumn.setPrefWidth(150); // Set preferred width
 
         TableColumn<SummaryItem, Double> amountColumn = new TableColumn<>("Amount");
         amountColumn.setCellValueFactory(cellData -> cellData.getValue().amountProperty().asObject());
+        amountColumn.setPrefWidth(150); // Adjusted preferred width
 
         summaryTable.getColumns().addAll(categoryColumn, amountColumn);
         updateSummaryTable();
@@ -798,67 +797,65 @@ public class BudgetApp extends Application {
     }
 
 
-    /**
-     * Configures the income table with columns for source and amount, and populates it with income data.
-     *
-     * @param table the TableView to configure
-     */
     private void configureIncomeTable(TableView<Income> table) {
-        // Create and set up the source column
         TableColumn<Income, String> sourceColumn = new TableColumn<>("Source");
         sourceColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getSource()));
+        sourceColumn.setPrefWidth(150); // Set preferred width
 
-        // Create and set up the amount column
         TableColumn<Income, Double> amountColumn = new TableColumn<>("Amount");
         amountColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleDoubleProperty(cellData.getValue().getAmount()).asObject());
+        amountColumn.setPrefWidth(100); // Set preferred width
 
-        // Add columns to the table
         table.getColumns().addAll(sourceColumn, amountColumn);
-
-        // Populate the table with income data
         table.setItems(javafx.collections.FXCollections.observableArrayList(incomes));
+
+        // Set custom placeholder text
+        table.setPlaceholder(new Label("No income yet!"));
     }
 
 
-    /**
-     * Configures the expense table with columns for category and amount, and populates it with expense data.
-     *
-     * @param table the TableView to configure
-     */
     private void configureExpenseTable(TableView<Expense> table) {
-        // Create and set up the category column
         TableColumn<Expense, String> categoryColumn = new TableColumn<>("Category");
         categoryColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getCategory()));
+        categoryColumn.setPrefWidth(150); // Set preferred width
 
-        // Create and set up the amount column
         TableColumn<Expense, Double> amountColumn = new TableColumn<>("Amount");
         amountColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleDoubleProperty(cellData.getValue().getAmount()).asObject());
+        amountColumn.setPrefWidth(100); // Set preferred width
 
-        // Add columns to the table
         table.getColumns().addAll(categoryColumn, amountColumn);
-
-        // Populate the table with expense data
         table.setItems(javafx.collections.FXCollections.observableArrayList(expenses));
+
+        // Set custom placeholder text
+        table.setPlaceholder(new Label("No expenses yet!"));
     }
 
     private void configureSubscriptionTable(TableView<Subscription> table) {
         TableColumn<Subscription, String> nameColumn = new TableColumn<>("Name");
         nameColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getName()));
+        nameColumn.setPrefWidth(150); // Set preferred width
 
         TableColumn<Subscription, Double> costColumn = new TableColumn<>("Cost");
         costColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleDoubleProperty(cellData.getValue().getCost()).asObject());
+        costColumn.setPrefWidth(100); // Set preferred width
 
         TableColumn<Subscription, LocalDate> startDateColumn = new TableColumn<>("Start Date");
         startDateColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleObjectProperty<>(cellData.getValue().getStartDate()));
+        startDateColumn.setPrefWidth(120); // Set preferred width
 
         TableColumn<Subscription, String> recurrenceColumn = new TableColumn<>("Recurrence");
         recurrenceColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getRecurrencePeriod()));
+        recurrenceColumn.setPrefWidth(120); // Set preferred width
 
         TableColumn<Subscription, Integer> notificationDaysColumn = new TableColumn<>("Notify Before (days)");
         notificationDaysColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleIntegerProperty(cellData.getValue().getNotificationDays()).asObject());
+        notificationDaysColumn.setPrefWidth(160); // Adjusted preferred width
 
         table.getColumns().addAll(nameColumn, costColumn, startDateColumn, recurrenceColumn, notificationDaysColumn);
         table.setItems(javafx.collections.FXCollections.observableArrayList(subscriptions));
+
+        // Set custom placeholder text
+        table.setPlaceholder(new Label("No subscriptions yet!"));
     }
 
     /**

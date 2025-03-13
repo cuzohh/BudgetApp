@@ -17,7 +17,7 @@ public class Subscription implements Serializable {
         this.recurrencePeriod = recurrencePeriod;
         this.notificationDays = notificationDays;
     }
-    // Getters and setters for the new fields
+
     public LocalDate getStartDate() {
         return startDate;
     }
