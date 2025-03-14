@@ -1,4 +1,3 @@
-// SummaryItem.java
 package com.example.ia;
 
 import javafx.beans.property.SimpleStringProperty;
@@ -19,7 +18,6 @@ public class SummaryItem {
     public StringProperty categoryProperty() {
         return category;
     }
-
     // Returns the amount property
     public StringProperty amountProperty() {
         return amount;

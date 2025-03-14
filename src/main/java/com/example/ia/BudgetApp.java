@@ -23,7 +23,6 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -33,12 +32,9 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
-
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.JsonObject;
-
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
@@ -55,8 +51,6 @@ public class BudgetApp extends Application {
     private VBox statementPane;
     private double budgetLimit = Double.MAX_VALUE;
 
-
-
     private void checkForUpcomingSubscriptions() {
         LocalDate today = LocalDate.now();
         for (Subscription subscription : subscriptions) {
@@ -68,8 +62,6 @@ public class BudgetApp extends Application {
             }
         }
     }
-
-
     private LocalDate calculateNextPaymentDate(Subscription subscription) {
         LocalDate nextPaymentDate = subscription.getStartDate();
         while (nextPaymentDate.isBefore(LocalDate.now())) {
@@ -87,13 +79,11 @@ public class BudgetApp extends Application {
                     // Add one year to the date
                     nextPaymentDate = nextPaymentDate.plusYears(1);
                     break;
-                // Add more cases if needed prolly not necessary tho
+                // Add more cases if needed probably not necessary tho
             }
         }
         return nextPaymentDate;
     }
-
-
     private void showNotification(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
@@ -106,65 +96,46 @@ public class BudgetApp extends Application {
     public void start(Stage primaryStage) {
         // Load the financial data from storage
         loadFinancialData();
-
         // Check for upcoming subscriptions
         checkForUpcomingSubscriptions();
-
         // Create a tab pane for displaying multiple panes
         TabPane tabPane = new TabPane();
         tabPane.setSide(Side.LEFT);
-
         // Create a tab for income
         Tab incomeTab = new Tab("Income", createIncomePane());
         incomeTab.setClosable(false);
-
         // Create a tab for expenses
         Tab expenseTab = new Tab("Expenses", createExpensePane());
         expenseTab.setClosable(false);
-
         // Create a tab for subscriptions
         Tab subscriptionTab = new Tab("Subscriptions", createSubscriptionPane());
         subscriptionTab.setClosable(false);
-
         // Create a tab for the statement
         Tab statementTab = new Tab("Statement", createStatementPane());
         statementTab.setClosable(false);
-
         // Add all tabs to the tab pane
         tabPane.getTabs().addAll(incomeTab, expenseTab, subscriptionTab, statementTab);
-
         // Set the statement tab as the default selected tab
         tabPane.getSelectionModel().select(statementTab);
-
         // Create a scene for the tab pane
         Scene scene = new Scene(tabPane, 800, 600);
-
         // Load the CSS styles for the application
         scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/styles.css")).toExternalForm());
-
         // Create a root pane for the application
         VBox root = new VBox(tabPane);
-
         // Set the tab pane to take up all the available vertical space in the root pane
         VBox.setVgrow(tabPane, Priority.ALWAYS);
-
         // Create a scene for the root pane
         Scene mainScene = new Scene(root, 1000, 800); // Set initial size to 1000x800
-
         // Load the CSS styles for the application
         mainScene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/styles.css")).toExternalForm());
-
         // Set the scene for the primary stage
         primaryStage.setScene(mainScene);
-
         // Set the title of the primary stage
         primaryStage.setTitle("Budget Tracker");
-
         // Show the primary stage
         primaryStage.show();
     }
-
-
     private VBox createIncomePane() {
         VBox incomePane = new VBox(10);
         incomePane.setPadding(new Insets(10));
@@ -485,11 +456,9 @@ public class BudgetApp extends Application {
         // Create text field for income source
         TextField sourceField = new TextField();
         sourceField.setPromptText("Source");
-
         // Create text field for income amount
         TextField amountField = new TextField();
         amountField.setPromptText("Amount");
-
         // Create add button
         Button addButton = new Button("Add");
         addButton.setOnAction(e -> {
@@ -500,19 +469,15 @@ public class BudgetApp extends Application {
                     String source = sourceField.getText();
                     double amount = Double.parseDouble(amountField.getText());
                     Income income = new Income(source, amount);
-
                     // Add income to list and table
                     incomes.add(income);
                     table.getItems().add(income);
-
                     // Clear input fields
                     sourceField.clear();
                     amountField.clear();
-
                     // Animate table addition and update statement pane
                     animateAddition(table);
                     updateStatementPane();
-
                     // Save financial data
                     saveFinancialData();
                 } catch (NumberFormatException ex) {
@@ -521,11 +486,9 @@ public class BudgetApp extends Application {
                 }
             }
         });
-
         // Set horizontal grow priority for text fields
         HBox.setHgrow(sourceField, Priority.ALWAYS);
         HBox.setHgrow(amountField, Priority.ALWAYS);
-
         // Return HBox containing input fields and add button
         return new HBox(10, sourceField, amountField, addButton);
     }
@@ -535,11 +498,9 @@ public class BudgetApp extends Application {
         // Create text field for expense category
         TextField categoryField = new TextField();
         categoryField.setPromptText("Category");
-
         // Create text field for expense amount
         TextField amountField = new TextField();
         amountField.setPromptText("Amount");
-
         // Create add button
         Button addButton = new Button("Add");
         addButton.setOnAction(e -> {
@@ -550,19 +511,15 @@ public class BudgetApp extends Application {
                     String category = categoryField.getText();
                     double amount = Double.parseDouble(amountField.getText());
                     Expense expense = new Expense(category, amount);
-
                     // Add expense to list and table
                     expenses.add(expense);
                     table.getItems().add(expense);
-
                     // Clear input fields
                     categoryField.clear();
                     amountField.clear();
-
                     // Animate table addition and update statement pane
                     animateAddition(table);
                     updateStatementPane();
-
                     // Save financial data
                     saveFinancialData();
                 } catch (NumberFormatException ex) {
@@ -571,12 +528,9 @@ public class BudgetApp extends Application {
                 }
             }
         });
-
         // Set horizontal grow priority for text fields
         HBox.setHgrow(categoryField, Priority.ALWAYS);
         HBox.setHgrow(amountField, Priority.ALWAYS);
-
-        // Return HBox containing input fields and add button
         return new HBox(10, categoryField, amountField, addButton);
     }
     private HBox createSubscriptionInput(TableView<Subscription> table) {
@@ -605,19 +559,16 @@ public class BudgetApp extends Application {
                     LocalDate startDate = startDatePicker.getValue();
                     String recurrencePeriod = recurrenceComboBox.getValue();
                     int notificationDays = Integer.parseInt(notificationDaysField.getText());
-
                     // Add subscription to list and table
                     Subscription subscription = new Subscription(name, cost, startDate, recurrencePeriod, notificationDays);
                     subscriptions.add(subscription);
                     table.getItems().add(subscription);
-
                     // Clear input fields
                     nameField.clear();
                     costField.clear();
                     startDatePicker.setValue(null);
                     recurrenceComboBox.setValue(null);
                     notificationDaysField.clear();
-
                     // Animate table addition and update statement pane
                     animateAddition(table);
                     updateStatementPane();
@@ -819,7 +770,6 @@ public class BudgetApp extends Application {
         // Show the dialog and wait for the user to respond, return true if OK
         return alert.showAndWait().filter(response -> response == ButtonType.OK).isPresent();
     }
-
 
     private void configureIncomeTable(TableView<Income> table) {
         TableColumn<Income, String> sourceColumn = new TableColumn<>("Source");

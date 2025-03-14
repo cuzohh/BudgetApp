@@ -9,7 +9,7 @@ public class Income implements Serializable {
     // The amount of money made from this source.
     private double amount; // amount of money made from this source
 
-    //Creates a new Income object.
+    // Creates a new Income object.
     public Income(String source, double amount) {
         this.source = source;
         this.amount = amount;
@@ -20,18 +20,8 @@ public class Income implements Serializable {
         return source;
     }
 
-    // Sets the source of the income.
-    public void setSource(String source) {
-        this.source = source;
-    }
-
-    //Gets the amount of money made from this source.
+    // Gets the amount of money made from this source.
     public double getAmount() {
         return amount;
-    }
-
-    // Sets the amount of money made from this source.
-    public void setAmount(double amount) {
-        this.amount = amount;
     }
 }

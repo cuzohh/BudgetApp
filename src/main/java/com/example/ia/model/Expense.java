@@ -13,24 +13,12 @@ public class Expense implements Serializable {
         this.category = category;
         this.amount = amount;
     }
-
     // Get the category of the expense
     public String getCategory() {
         return category;
     }
-
-    // Set the category of the expense
-    public void setCategory(String category) {
-        this.category = category;
-    }
-
     // Get the amount of the expense
     public double getAmount() {
         return amount;
-    }
-
-    // Set the amount of the expense
-    public void setAmount(double amount) {
-        this.amount = amount;
     }
 }
