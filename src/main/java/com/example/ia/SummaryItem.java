@@ -1,30 +1,27 @@
+// SummaryItem.java
 package com.example.ia;
 
-import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.beans.property.DoubleProperty;
 
+// Represents an item in the summary table with a category and amount
 public class SummaryItem {
-    // Property to hold the category as a string
-    private final StringProperty category;
-    
-    // Property to hold the amount as a double
-    private final DoubleProperty amount;
+    private final StringProperty category; // Category of the summary item
+    private final StringProperty amount; // Amount associated with the category
 
-    // Constructor to initialize category and amount
-    public SummaryItem(String category, double amount) {
+    // Constructor to initialize the category and amount properties
+    public SummaryItem(String category, String amount) {
         this.category = new SimpleStringProperty(category);
-        this.amount = new SimpleDoubleProperty(amount);
+        this.amount = new SimpleStringProperty(amount);
     }
 
-    // Getter for category property
+    // Returns the category property
     public StringProperty categoryProperty() {
         return category;
     }
 
-    // Getter for amount property
-    public DoubleProperty amountProperty() {
+    // Returns the amount property
+    public StringProperty amountProperty() {
         return amount;
     }
 }

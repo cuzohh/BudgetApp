@@ -13,11 +13,13 @@ import java.time.LocalDate;
 
 public class LocalDateAdapter implements JsonSerializer<LocalDate>, JsonDeserializer<LocalDate> {
 
+    // Converts LocalDate to a JSON Primitive
     @Override
     public JsonElement serialize(LocalDate src, Type typeOfSrc, JsonSerializationContext context) {
         return new JsonPrimitive(src.toString());
     }
 
+    // Converts a JSON Primitive to a LocalDate
     @Override
     public LocalDate deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         return LocalDate.parse(json.getAsString());

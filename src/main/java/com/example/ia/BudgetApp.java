@@ -53,6 +53,8 @@ public class BudgetApp extends Application {
     private Label promptLabel;
     private Hyperlink addDataLink;
     private VBox statementPane;
+    private double budgetLimit = Double.MAX_VALUE;
+
 
 
     private void checkForUpcomingSubscriptions() {
@@ -239,22 +241,73 @@ public class BudgetApp extends Application {
         return subscriptionPane;
     }
 
+    private void checkBudgetLimit() {
+        double totalExpenses = calculateTotalExpenses() + calculateTotalSubscriptions();
+        if (budgetLimit != Double.MAX_VALUE) {
+            if (totalExpenses > budgetLimit) {
+                showNotification("Budget Exceeded", "You have exceeded your budget limit for the month.");
+            } else if (totalExpenses >= budgetLimit * 0.9) {
+                showNotification("Budget Alert", "You are close to exceeding your budget limit for the month.");
+            }
+        }
+    }
+
     private VBox createStatementPane() {
+        // Create the statement pane
         statementPane = new VBox(10);
         statementPane.setPadding(new Insets(10));
         statementPane.setAlignment(Pos.TOP_CENTER);
 
+        // Create a label for the statement
         Label statementLabel = new Label("Total Statement:");
+
+        // Create the table for displaying the summary
         summaryTable = new TableView<>();
         configureSummaryTable();
+
+        // Create the pie chart
         pieChart = new PieChart();
         updatePieChart();
+
+        // Create the line chart
         lineChart = createLineChart();
         updateLineChart();
 
+        // Create a field for entering the budget limit
+        TextField budgetLimitField = new TextField();
+        budgetLimitField.setPromptText("Set Budget Limit");
+
+        // Create a button for setting the budget limit
+        Button setBudgetLimitButton = new Button("Set Budget Limit");
+        setBudgetLimitButton.setOnAction(e -> {
+            try {
+                // Set the budget limit
+                budgetLimit = Double.parseDouble(budgetLimitField.getText());
+                showNotification("Budget Limit Set", "Your budget limit has been set to " + budgetLimit);
+                updateSummaryTable();
+            } catch (NumberFormatException ex) {
+                showErrorDialog("Invalid input", "Please enter a valid number for the budget limit.");
+            }
+        });
+
+        // Create a button for clearing the budget limit
+        Button clearBudgetLimitButton = new Button("Clear Budget Limit");
+        clearBudgetLimitButton.setOnAction(e -> {
+            // Clear the budget limit
+            budgetLimit = Double.MAX_VALUE;
+            showNotification("Budget Limit Cleared", "Your budget limit has been cleared.");
+            updateSummaryTable();
+        });
+
+        // Create a HBox for the budget limit buttons
+        HBox budgetLimitButtons = new HBox(10, setBudgetLimitButton, clearBudgetLimitButton);
+        budgetLimitButtons.setAlignment(Pos.CENTER);
+
+        // Create a button for clearing all data
         Button clearAllDataButton = new Button("Clear All Data");
         clearAllDataButton.setOnAction(e -> {
             if (showConfirmationDialog("Are you sure you want to clear all data?")) {
+                // Clear all data
                 incomes.clear();
                 expenses.clear();
                 subscriptions.clear();
@@ -264,14 +317,20 @@ public class BudgetApp extends Application {
             }
         });
 
+        // Create a button for exporting data
         Button exportDataButton = new Button("Export Data");
         exportDataButton.setOnAction(e -> exportData());
 
-        // Add the Import Data button
+        // Create a button for importing data
         Button importDataButton = new Button("Import Data");
         importDataButton.setOnAction(e -> importData());
 
-        statementPane.getChildren().addAll(statementLabel, summaryTable, pieChart, lineChart, clearAllDataButton, exportDataButton, importDataButton);
+        // Create a HBox for the data buttons
+        HBox dataButtons = new HBox(10, exportDataButton, importDataButton);
+        dataButtons.setAlignment(Pos.CENTER);
+
+        // Add all components to the statement pane
+        statementPane.getChildren().addAll(statementLabel, summaryTable, pieChart, lineChart, budgetLimitField, budgetLimitButtons, clearAllDataButton, dataButtons);
         checkForData(statementPane);
         return statementPane;
     }
@@ -283,8 +342,8 @@ public class BudgetApp extends Application {
         categoryColumn.setPrefWidth(150); // Set preferred width
 
         // Create a TableColumn for the Amount field
-        TableColumn<SummaryItem, Double> amountColumn = new TableColumn<>("Amount");
-        amountColumn.setCellValueFactory(cellData -> cellData.getValue().amountProperty().asObject());
+        TableColumn<SummaryItem, String> amountColumn = new TableColumn<>("Amount");
+        amountColumn.setCellValueFactory(cellData -> cellData.getValue().amountProperty());
         amountColumn.setPrefWidth(150); // Adjusted preferred width
 
         // Add the columns to the table
@@ -295,15 +354,19 @@ public class BudgetApp extends Application {
     }
 
 
+    // Clear the table and add new items with the current data
     private void updateSummaryTable() {
-        // Clear any existing data in the table
         summaryTable.getItems().clear();
-
-        // Add new data to the table
-        summaryTable.getItems().add(new SummaryItem("Total Income", calculateTotalIncome()));
-        summaryTable.getItems().add(new SummaryItem("Total Expenses", calculateTotalExpenses()));
-        summaryTable.getItems().add(new SummaryItem("Total Subscriptions", calculateTotalSubscriptions()));
-        summaryTable.getItems().add(new SummaryItem("Free Income", calculateFreeIncome()));
+        // Add the total income
+        summaryTable.getItems().add(new SummaryItem("Total Income", String.valueOf(calculateTotalIncome())));
+        // Add the total expenses
+        summaryTable.getItems().add(new SummaryItem("Total Expenses", String.valueOf(calculateTotalExpenses())));
+        // Add the total subscriptions
+        summaryTable.getItems().add(new SummaryItem("Total Subscriptions", String.valueOf(calculateTotalSubscriptions())));
+        // Add the free income
+        summaryTable.getItems().add(new SummaryItem("Free Income", String.valueOf(calculateFreeIncome())));
+        // Add the budget limit
+        summaryTable.getItems().add(new SummaryItem("Budget Limit", budgetLimit == Double.MAX_VALUE ? "No Budget Limit" : String.valueOf(budgetLimit)));
     }
 
     private void updateStatementPane() {
@@ -318,6 +381,9 @@ public class BudgetApp extends Application {
 
         // Update the prompt text
         updatePrompt();
+
+        // Check the budget limit
+        checkBudgetLimit();
     }
     private void updatePieChart() {
         // Clear existing data from the pie chart
@@ -387,6 +453,7 @@ public class BudgetApp extends Application {
         return subscriptions.stream().mapToDouble(Subscription::getCost).sum();
     }
     private double calculateFreeIncome() {
+        // Calculate the free income by subtracting total expenses and subscriptions from total income
         return calculateTotalIncome() - (calculateTotalExpenses() + calculateTotalSubscriptions());
     }
     private void updatePrompt() {
@@ -415,63 +482,105 @@ public class BudgetApp extends Application {
         }
     }
     private HBox createIncomeInput(TableView<Income> table) {
+        // Create text field for income source
         TextField sourceField = new TextField();
         sourceField.setPromptText("Source");
+
+        // Create text field for income amount
         TextField amountField = new TextField();
         amountField.setPromptText("Amount");
+
+        // Create add button
         Button addButton = new Button("Add");
         addButton.setOnAction(e -> {
+            // Validate input fields
             if (validateInput(sourceField, amountField)) {
                 try {
+                    // Parse input and create new Income object
                     String source = sourceField.getText();
                     double amount = Double.parseDouble(amountField.getText());
                     Income income = new Income(source, amount);
+
+                    // Add income to list and table
                     incomes.add(income);
                     table.getItems().add(income);
+
+                    // Clear input fields
                     sourceField.clear();
                     amountField.clear();
+
+                    // Animate table addition and update statement pane
                     animateAddition(table);
                     updateStatementPane();
+
+                    // Save financial data
                     saveFinancialData();
                 } catch (NumberFormatException ex) {
+                    // Show error dialog for invalid input
                     showErrorDialog("Invalid input", "Please enter a valid number for the amount.");
                 }
             }
         });
+
+        // Set horizontal grow priority for text fields
         HBox.setHgrow(sourceField, Priority.ALWAYS);
         HBox.setHgrow(amountField, Priority.ALWAYS);
+
+        // Return HBox containing input fields and add button
         return new HBox(10, sourceField, amountField, addButton);
     }
 
+    // Creates a HBox for inputting new expenses
     private HBox createExpenseInput(TableView<Expense> table) {
+        // Create text field for expense category
         TextField categoryField = new TextField();
         categoryField.setPromptText("Category");
+
+        // Create text field for expense amount
         TextField amountField = new TextField();
         amountField.setPromptText("Amount");
+
+        // Create add button
         Button addButton = new Button("Add");
         addButton.setOnAction(e -> {
+            // Validate input fields
             if (validateInput(categoryField, amountField)) {
                 try {
+                    // Parse input and create new Expense object
                     String category = categoryField.getText();
                     double amount = Double.parseDouble(amountField.getText());
                     Expense expense = new Expense(category, amount);
+
+                    // Add expense to list and table
                     expenses.add(expense);
                     table.getItems().add(expense);
-                    categoryField.clear();                                                                                                                                                                                                                                                                                      
+
+                    // Clear input fields
+                    categoryField.clear();
                     amountField.clear();
+
+                    // Animate table addition and update statement pane
                     animateAddition(table);
                     updateStatementPane();
+
+                    // Save financial data
                     saveFinancialData();
                 } catch (NumberFormatException ex) {
+                    // Show error dialog for invalid input
                     showErrorDialog("Invalid input", "Please enter a valid number for the amount.");
                 }
             }
         });
+
+        // Set horizontal grow priority for text fields
         HBox.setHgrow(categoryField, Priority.ALWAYS);
         HBox.setHgrow(amountField, Priority.ALWAYS);
+
+        // Return HBox containing input fields and add button
         return new HBox(10, categoryField, amountField, addButton);
     }
     private HBox createSubscriptionInput(TableView<Subscription> table) {
+        // Create text fields and input controls for subscription
         TextField nameField = new TextField();
         nameField.setPromptText("Name");
         TextField costField = new TextField();
@@ -484,56 +593,70 @@ public class BudgetApp extends Application {
         TextField notificationDaysField = new TextField();
         notificationDaysField.setPromptText("Notify Before (days)");
 
+        // Create add button with action handler
         Button addButton = new Button("Add");
         addButton.setOnAction(e -> {
+            // Validate input fields
             if (validateInput(nameField, costField, recurrenceComboBox, notificationDaysField)) {
                 try {
+                    // Parse input and create new Subscription object
                     String name = nameField.getText();
                     double cost = Double.parseDouble(costField.getText());
                     LocalDate startDate = startDatePicker.getValue();
                     String recurrencePeriod = recurrenceComboBox.getValue();
                     int notificationDays = Integer.parseInt(notificationDaysField.getText());
 
+                    // Add subscription to list and table
                     Subscription subscription = new Subscription(name, cost, startDate, recurrencePeriod, notificationDays);
                     subscriptions.add(subscription);
                     table.getItems().add(subscription);
 
+                    // Clear input fields
                     nameField.clear();
                     costField.clear();
                     startDatePicker.setValue(null);
                     recurrenceComboBox.setValue(null);
                     notificationDaysField.clear();
 
+                    // Animate table addition and update statement pane
                     animateAddition(table);
                     updateStatementPane();
                     saveFinancialData();
                 } catch (NumberFormatException ex) {
+                    // Show error dialog for invalid input
                     showErrorDialog("Invalid input", "Please enter valid numbers for cost and notification days.");
                 }
             }
         });
 
+        // Set horizontal grow priority for text fields
         HBox.setHgrow(nameField, Priority.ALWAYS);
         HBox.setHgrow(costField, Priority.ALWAYS);
         HBox.setHgrow(startDatePicker, Priority.ALWAYS);
         HBox.setHgrow(recurrenceComboBox, Priority.ALWAYS);
         HBox.setHgrow(notificationDaysField, Priority.ALWAYS);
 
+        // Return HBox containing input fields and add button
         return new HBox(10, nameField, costField, startDatePicker, recurrenceComboBox, notificationDaysField, addButton);
     }
 
+    // Checks if all fields are filled in and valid
     private boolean validateInput(TextField nameField, TextField costField, ComboBox<String> recurrenceComboBox, TextField notificationDaysField) {
+        // Check if any of the fields are empty
         if (nameField.getText().trim().isEmpty() || costField.getText().trim().isEmpty() || recurrenceComboBox.getValue() == null || notificationDaysField.getText().trim().isEmpty()) {
             showErrorDialog("Invalid input", "All fields must be filled.");
             return false;
         }
         try {
+            // Try to parse the cost and notification days
             Double.parseDouble(costField.getText());
             Integer.parseInt(notificationDaysField.getText());
         } catch (NumberFormatException e) {
+            // Show error dialog if invalid input
             showErrorDialog("Invalid input", "Please enter valid numbers for cost and notification days.");
             return false;
         }
+        // Return true if all valid
         return true;
     }
     private void showErrorDialog(String title, String message) {
@@ -590,6 +713,7 @@ public class BudgetApp extends Application {
         return new HBox(10, result.deleteButton, result.clearButton);
     }
 
+    // Helper class to store the result of a method that returns two buttons
     private static class Result {
         public final Button deleteButton;
         public final Button clearButton;
@@ -678,12 +802,21 @@ public class BudgetApp extends Application {
         // Layout the buttons
         return new HBox(10, deleteButton, clearButton);
     }
+    // Show a confirmation dialog with the specified message
     private boolean showConfirmationDialog(String message) {
+        // Create a confirmation alert dialog
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+
+        // Set the dialog title
         alert.setTitle("Confirmation");
+
+        // Remove the header text for a cleaner look
         alert.setHeaderText(null);
+
+        // Set the content of the dialog with the provided message
         alert.setContentText(message);
 
+        // Show the dialog and wait for the user to respond, return true if OK
         return alert.showAndWait().filter(response -> response == ButtonType.OK).isPresent();
     }
 
@@ -841,6 +974,7 @@ public class BudgetApp extends Application {
         // If no errors were found, return true
         return true;
     }
+    // Show a confirmation dialog with the given title and message
     private void showConfirmationDialog(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
@@ -848,6 +982,7 @@ public class BudgetApp extends Application {
         alert.setContentText(message);
         alert.showAndWait();
     }
+    // Export financial data to a JSON file
     private void exportData() {
         if (incomes.isEmpty() && expenses.isEmpty() && subscriptions.isEmpty()) {
             showErrorDialog("No Data to Export", "There is no financial data to export.");
@@ -860,18 +995,27 @@ public class BudgetApp extends Application {
         File file = fileChooser.showSaveDialog(null);
         if (file != null) {
             try (FileWriter writer = new FileWriter(file)) {
+                // Create a Gson object to convert the data to JSON
                 Gson gson = GsonUtil.createGson();
+                // Create a JsonObject to store the data
                 JsonObject data = new JsonObject();
+                // Add the incomes to the JsonObject
                 data.add("incomes", gson.toJsonTree(incomes));
+                // Add the expenses to the JsonObject
                 data.add("expenses", gson.toJsonTree(expenses));
+                // Add the subscriptions to the JsonObject
                 data.add("subscriptions", gson.toJsonTree(subscriptions));
+                // Write the data to the file
                 gson.toJson(data, writer);
+                // Show a confirmation dialog if the export was successful
                 showConfirmationDialog("Export Successful", "Data exported successfully.");
             } catch (IOException e) {
+                // Show an error dialog if the export failed
                 showErrorDialog("Export Failed", "Failed to export data.");
             }
         }
     }
+    // Import financial data from a JSON file
     private void importData() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Import Data");
@@ -879,15 +1023,24 @@ public class BudgetApp extends Application {
         File file = fileChooser.showOpenDialog(null);
         if (file != null) {
             try (FileReader reader = new FileReader(file)) {
+                // Create a Gson object to convert the JSON to the data
                 Gson gson = GsonUtil.createGson();
+                // Create a JsonObject to store the data
                 JsonObject data = gson.fromJson(reader, JsonObject.class);
+                // Get the incomes from the JsonObject
                 incomes = gson.fromJson(data.get("incomes"), new TypeToken<List<Income>>(){}.getType());
+                // Get the expenses from the JsonObject
                 expenses = gson.fromJson(data.get("expenses"), new TypeToken<List<Expense>>(){}.getType());
+                // Get the subscriptions from the JsonObject
                 subscriptions = gson.fromJson(data.get("subscriptions"), new TypeToken<List<Subscription>>(){}.getType());
+                // Update all tables
                 updateAllTables();
+                // Update the statement pane
                 updateStatementPane();
+                // Show a confirmation dialog if the import was successful
                 showConfirmationDialog("Import Successful", "Data imported successfully.");
             } catch (IOException e) {
+                // Show an error dialog if the import failed
                 showErrorDialog("Import Failed", "Failed to import data.");
             }
         }
