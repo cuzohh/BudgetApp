@@ -62,7 +62,7 @@
                     <execution>
                         <id>default-cli</id>
                         <configuration>
-                            <mainClass>com.example.ia.BudgetApp</mainClass>
+                            <mainClass>com.example.ia.Main_1</mainClass>
                         </configuration>
                     </execution>
                 </executions>

@@ -931,17 +931,20 @@ public class BudgetApp extends Application {
         summaryTable.getItems().clear();
         updateSummaryTable();
 
-        // Locate and clear the income table
+        // Locate and update the income table
         TableView<Income> incomeTable = (TableView<Income>) ((VBox) ((Tab) ((TabPane) summaryTable.getScene().getRoot().lookup(".tab-pane")).getTabs().get(0)).getContent()).getChildren().get(1);
         incomeTable.getItems().clear();
+        incomeTable.setItems(javafx.collections.FXCollections.observableArrayList(incomes));
 
-        // Locate and clear the expense table
+        // Locate and update the expense table
         TableView<Expense> expenseTable = (TableView<Expense>) ((VBox) ((Tab) ((TabPane) summaryTable.getScene().getRoot().lookup(".tab-pane")).getTabs().get(1)).getContent()).getChildren().get(1);
         expenseTable.getItems().clear();
+        expenseTable.setItems(javafx.collections.FXCollections.observableArrayList(expenses));
 
-        // Locate and clear the subscription table
+        // Locate and update the subscription table
         TableView<Subscription> subscriptionTable = (TableView<Subscription>) ((VBox) ((Tab) ((TabPane) summaryTable.getScene().getRoot().lookup(".tab-pane")).getTabs().get(2)).getContent()).getChildren().get(1);
         subscriptionTable.getItems().clear();
+        subscriptionTable.setItems(javafx.collections.FXCollections.observableArrayList(subscriptions));
     }
 
     private void checkForData(VBox statementPane) {
