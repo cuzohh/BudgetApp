@@ -4,7 +4,7 @@
 ![JavaFX](https://img.shields.io/badge/JavaFX-19-lightgrey)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-A comprehensive personal finance manager with income/expense tracking, subscription management, and visual analytics.
+A comprehensive personal finance manager with income/expense tracking, subscription management, and visual analytics. Created for the IB Computer Science HL Internal Assessment
 
 ## Features
 
