@@ -44,6 +44,6 @@ A comprehensive personal finance manager with income/expense tracking, subscript
 
 2. **Run from source**:
    ```bash
-   git clone https://github.com/yourusername/budget-tracker.git
-   cd budget-tracker
+   git clone https://github.com/cuzohh/budgetapp
+   cd budgetapp
    mvn clean javafx:run
